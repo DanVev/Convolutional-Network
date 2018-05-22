@@ -8,27 +8,11 @@ from backprop import *
 
 import collections
 
-
-######################### TEST IMAGE ##########################
-import scipy
-from scipy import ndimage, misc
-import matplotlib.pyplot as plt
-
-# im = scipy.ndimage.imread('images/cat.jpg', flatten=True)
-# a = im.shape[0]
-# b= im.shape[1]
-# cat = scipy.misc.imresize(im, (a/40,b/40), interp='bilinear', mode=None)
-# # normalize
-# cat = 1.0 - cat/255.0
-
-######################### TEST IMAGE ##########################
-
-
 ETA = 1.5
 EPOCHS = 30
 INPUT_SHAPE = (28*28)     # for mnist
 BATCH_SIZE = 10
-LMBDA = 0.1
+LAMBDA = 0.1
 
 # import ipdb; ipdb.set_trace()
 training_data, validation_data, test_data = mnist_loader.load_data_wrapper()
@@ -48,7 +32,7 @@ Args:
 # training_data = (training_data, label)
 x,y = training_data[0][0].shape
 input_shape = (1,x,y)
-print 'shape of input data: ', input_shape
+print('shape of input data: ', input_shape)
 
 net = Model(input_shape,
             layer_config = [
@@ -64,4 +48,4 @@ net = Model(input_shape,
                     'num_classes' : 10}}
             ])
 
-net.gradient_descent(training_data, BATCH_SIZE, ETA, EPOCHS, LMBDA, test_data = test_data[:20])
+net.gradient_descent(training_data, BATCH_SIZE, ETA, EPOCHS, LAMBDA, test_data = test_data[:20])
