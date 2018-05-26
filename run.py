@@ -48,4 +48,4 @@ net = Model(input_shape,
                     'num_classes' : 10}}
             ])
 
-net.gradient_descent(training_data, BATCH_SIZE, ETA, EPOCHS, LAMBDA, test_data = test_data[:20])
+net.gradient_descent(training_data, BATCH_SIZE, ETA, 2, LAMBDA, test_data = test_data[:20])

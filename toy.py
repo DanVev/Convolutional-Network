@@ -7,6 +7,7 @@ import time
 # import scipy
 # from scipy import ndimage, misc
 import matplotlib.pyplot as plt
+import tqdm
 
 from backprop import *
 
@@ -28,8 +29,8 @@ class ConvLayer(object):
         self.weights = np.random.randn(self.num_filters, self.depth, self.filter_size, self.filter_size)
         self.biases = np.random.rand(self.num_filters, 1)
 
-        self.output_dim1 = (self.height_in - self.filter_size + 2 * self.padding) / self.stride + 1  # num of rows
-        self.output_dim2 = (self.width_in - self.filter_size + 2 * self.padding) / self.stride + 1  # num of cols
+        self.output_dim1 = int((self.height_in - self.filter_size + 2 * self.padding) / self.stride + 1) # num of rows
+        self.output_dim2 = int((self.width_in - self.filter_size + 2 * self.padding) / self.stride + 1)  # num of cols
 
         self.z_values = np.zeros((self.num_filters, self.output_dim1, self.output_dim2))
         self.output = np.zeros((self.num_filters, self.output_dim1, self.output_dim2))
@@ -76,8 +77,8 @@ class PoolingLayer(object):
         '''
         self.depth, self.height_in, self.width_in = input_shape
         self.poolsize = poolsize
-        self.height_out = (self.height_in - self.poolsize[0]) / self.poolsize[1] + 1
-        self.width_out = (self.width_in - self.poolsize[0]) / self.poolsize[1] + 1  # num of output neurons
+        self.height_out = int((self.height_in - self.poolsize[0]) / self.poolsize[1] + 1)
+        self.width_out = int((self.width_in - self.poolsize[0]) / self.poolsize[1] + 1)  # num of output neurons
 
         self.output = np.empty((self.depth, self.height_out, self.width_out))
         self.max_indices = np.empty((self.depth, self.height_out, self.width_out, 2))
@@ -97,7 +98,7 @@ class PoolingLayer(object):
                 toPool = input_image[j][row:self.poolsize[0] + row, slide:self.poolsize[0] + slide]
 
                 self.output[j][i] = np.amax(toPool)  # calculate the max activation
-                index = zip(*np.where(np.max(toPool) == toPool))  # save the index of the max
+                index = list(zip(*np.where(np.max(toPool) == toPool))) # save the index of the max
                 if len(index) > 1:
                     index = [index[0]]
                 index = index[0][0] + row, index[0][1] + slide
@@ -193,8 +194,8 @@ class Model(object):
         input_shape = self.input_shape
         for layer_spec in layer_config:
             # handle the spec format: {'type': {kwargs}}
-            layer_class = self.layer_type_map[layer_spec.keys()[0]]
-            layer_kwargs = layer_spec.values()[0]
+            layer_class = self.layer_type_map[list(layer_spec.keys())[0]]
+            layer_kwargs = list(layer_spec.values())[0]
             layer = layer_class(input_shape, **layer_kwargs)
             input_shape = layer.output.shape
             layers.append(layer)
@@ -359,10 +360,10 @@ class Model(object):
             print("Starting epochs")
             start = time.time()
             random.shuffle(training_data)
-            batches = [training_data[k:k + batch_size] for k in range(0, training_size, batch_size)]
+            batches = [training_data[k:k + batch_size] for k in range(0, training_size, batch_size)][:10]
             losses = 0
 
-            for batch in batches:
+            for batch in tqdm.tqdm(batches):
                 loss = self.update_mini_batch(batch, eta)
                 losses += loss
             mean_error.append(round(losses / batch_size, 2))
@@ -373,7 +374,7 @@ class Model(object):
                 res = self.validate(test_data)
                 correct_res.append(res)
                 print("Epoch {0}: {1} / {2}".format(
-                    epoch, self.validate(test_data), n_test))
+                    epoch, self.validate(test_data[:100]), n_test))
                 print("Epoch {0} complete".format(epoch))
                 # time
                 timer = time.time() - start
